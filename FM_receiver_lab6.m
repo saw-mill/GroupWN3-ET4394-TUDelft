@@ -1,3 +1,11 @@
+%This code is taken from desktopSDR.com
+%This code implements a FM broadcast receiver which can be tested by using the RTL SDR device
+%The original code implements the multi stage process of downsampling and filtering (decimation) 
+%through a single function. We have broken down this component into two separate decimation units and
+%which individualy has the number by which the signal has to be downsampled and a low pass filter to 
+%avoid aliasing. We have used a window based FIR filter for this purpose. Cut off frequency is determined by
+%analyzing the graph of the modulated signal and the output after the discrimination stage.
+
 function FM_receiver_lab6
 
 %% PRINT FILE INFORMATION HYPERLINK TO COMMAND WINDOW
@@ -5,7 +13,7 @@ disp(['View file information for <a href="matlab: mfileinfo(''',mfilename,''')">
 
 %% PARAMETERS (edit)
 offline          = 0;                           % 0 = use RTL-SDR, 1 = import data
-%offline_filepath = 'rec_data\wfm_mono.mat';     % path to FM signal
+%offline_filepath = 'rec_data\wfm_mono.mat';    % path to FM signal
 rtlsdr_id        = '0';                         % stick ID
 rtlsdr_fc        = 102.7e6;                      % tuner centre frequency in Hz
 rtlsdr_gain      = 80;                          % tuner gain in dB
@@ -43,14 +51,7 @@ if offline == 1
     
     % reduce sampling rate
     rtlsdr_fs = 240e3;
-    
-    % fir decimator - fs = 240kHz downto 48kHz
-   % obj_decmtr = dsp.FIRDecimator(...
-    %'DecimationFactor', 5,...
-     %'Numerator', firpm(100,[0,15e3,20e3,(240e3/2)]/(240e3/2),...
-      %  [1 1 0 0], [1 1], 20));
-      
-      
+       
     
 else
     
@@ -65,14 +66,22 @@ else
         'OutputDataType', rtlsdr_datatype,...
         'FrequencyCorrection', rtlsdr_ppm);
     
-    % fir decimator - fs = 2.4MHz downto 48kHz
+
+    % No. of taps is 63 and the cut off frequency is 40 Khz, converted to radians/samples/sec is 0.13
+    % Cut off frequency is determined by the point on x-axis where the gain falls by 3db on y-axis
+    % ((40KHz/2.4M)*pi) = 0.05
+   
+    % fir decimator - fs = 2.4MHz downto 240kHz
     obj_decmtr_1 = dsp.FIRDecimator(...
         'DecimationFactor', 10,...
-        'Numerator', fir1(63, 0.02));
-    
+        'Numerator', fir1(63, 0.05));       
+
+    % Cut off frequency is 15Khz as per mono FM broadcast receiver spectrum, ((15/240)*pi) = 0.0013  
+    % fir decimator - fs = 240KHz downto 48kHz
+    obj_decmtr_1 = dsp.FIRDecimator(...
     obj_decmtr_2 = dsp.FIRDecimator(...
         'DecimationFactor', 5,...
-        'Numerator', fir1(63, 0.004));
+        'Numerator', fir1(63, 0.0013));         
 
 end;
 
@@ -100,7 +109,7 @@ obj_spectrumdemod = dsp.SpectrumAnalyzer(...
     'SpectrumType', 'Power density',...
     'FrequencySpan', 'Full',...
     'SampleRate', audio_fs);
-obj_spectrumdiscrim = dsp.SpectrumAnalyzer('Name', 'Spectrum Analyzer Discriminator',...
+obj_spectrumdiscrim = dsp.SpectrumAnalyzer('Name', 'Spectrum Analyzer Discriminator',... 
     'Title', 'Spectrum Analyzer Discriminator',...
     'SpectrumType', 'Power density',...
     'FrequencySpan', 'Full',...
@@ -131,19 +140,20 @@ while run_time < sim_time
     
     
     %Implementing 1st stage decimator
-    data_dec_1 = step(obj_decmtr_1, rtlsdr_data);
+    decmtr_1_output = step(obj_decmtr_1, rtlsdr_data);
     
     % implement frequency discriminator
-    discrim_delay = step(obj_delay,data_dec_1);
-    discrim_conj  = conj(data_dec_1);
+    discrim_delay = step(obj_delay, decmtr_1_output);
+    discrim_conj  = conj(decmtr_1_output);
     discrim_pd    = discrim_delay.*discrim_conj;
     discrim_arg   = angle(discrim_pd);
 
-    step(obj_spectrumdiscrim, discrim_arg);
+    % Spectrum analyzer window for output after frequency discriminator 
+    step(obj_spectrumdiscrim, discrim_arg); 
     
     % decimate + de-emphasis filter data
-    data_dec = step(obj_decmtr_2,discrim_arg);
-    data_deemph = step(obj_deemph,data_dec);
+    decmtr_output_2 = step(obj_decmtr_2,discrim_arg);
+    data_deemph = step(obj_deemph, decmtr_output_2);
     
     % update 'demodulated' spectrum analyzer window with new data
     step(obj_spectrumdemod, data_deemph);
