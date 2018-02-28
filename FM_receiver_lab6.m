@@ -136,19 +136,20 @@ while run_time < sim_time
     
     
     %Implementing 1st stage decimator
-    data_dec_1 = step(obj_decmtr_1, rtlsdr_data);
+    decmtr_1_output = step(obj_decmtr_1, rtlsdr_data);
     
     % implement frequency discriminator
-    discrim_delay = step(obj_delay,data_dec_1);
-    discrim_conj  = conj(data_dec_1);
+    discrim_delay = step(obj_delay, decmtr_1_output);
+    discrim_conj  = conj(decmtr_1_output);
     discrim_pd    = discrim_delay.*discrim_conj;
     discrim_arg   = angle(discrim_pd);
 
-    step(obj_spectrumdiscrim, discrim_arg);
+    % Spectrum analyzer window for output after frequency discriminator 
+    step(obj_spectrumdiscrim, discrim_arg); 
     
     % decimate + de-emphasis filter data
-    data_dec = step(obj_decmtr_2,discrim_arg);
-    data_deemph = step(obj_deemph,data_dec);
+    decmtr_output_2 = step(obj_decmtr_2,discrim_arg);
+    data_deemph = step(obj_deemph, decmtr_output_2);
     
     % update 'demodulated' spectrum analyzer window with new data
     step(obj_spectrumdemod, data_deemph);
