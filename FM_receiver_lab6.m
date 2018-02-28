@@ -5,7 +5,7 @@ disp(['View file information for <a href="matlab: mfileinfo(''',mfilename,''')">
 
 %% PARAMETERS (edit)
 offline          = 0;                           % 0 = use RTL-SDR, 1 = import data
-%offline_filepath = 'rec_data\wfm_mono.mat';     % path to FM signal
+%offline_filepath = 'rec_data\wfm_mono.mat';    % path to FM signal
 rtlsdr_id        = '0';                         % stick ID
 rtlsdr_fc        = 102.7e6;                      % tuner centre frequency in Hz
 rtlsdr_gain      = 80;                          % tuner gain in dB
@@ -43,14 +43,7 @@ if offline == 1
     
     % reduce sampling rate
     rtlsdr_fs = 240e3;
-    
-    % fir decimator - fs = 240kHz downto 48kHz
-   % obj_decmtr = dsp.FIRDecimator(...
-    %'DecimationFactor', 5,...
-     %'Numerator', firpm(100,[0,15e3,20e3,(240e3/2)]/(240e3/2),...
-      %  [1 1 0 0], [1 1], 20));
-      
-      
+       
     
 else
     
@@ -68,11 +61,13 @@ else
     % fir decimator - fs = 2.4MHz downto 48kHz
     obj_decmtr_1 = dsp.FIRDecimator(...
         'DecimationFactor', 10,...
-        'Numerator', fir1(63, 0.02));
+        'Numerator', fir1(63, 0.05));       % No. of taps is 63 and the cut off frequency is 40 Khz, converted to radians/samples/sec is 0.13
+                                            % Cut off frequency is determined by the point on x-axis where the gain falls by 3db on y-axis
+                                            % ((40KHz/2.4M)*pi) = 0.05
     
     obj_decmtr_2 = dsp.FIRDecimator(...
         'DecimationFactor', 5,...
-        'Numerator', fir1(63, 0.004));
+        'Numerator', fir1(63, 0.0013));       % Cut off frequency is 15Khz as per mono FM broadcast receiver spectrum, ((15/240)*pi) = 0.0013    
 
 end;
 
@@ -100,7 +95,7 @@ obj_spectrumdemod = dsp.SpectrumAnalyzer(...
     'SpectrumType', 'Power density',...
     'FrequencySpan', 'Full',...
     'SampleRate', audio_fs);
-obj_spectrumdiscrim = dsp.SpectrumAnalyzer('Name', 'Spectrum Analyzer Discriminator',...
+obj_spectrumdiscrim = dsp.SpectrumAnalyzer('Name', 'Spectrum Analyzer Discriminator',... % spectrum analyzer to view output of frequency discriminator
     'Title', 'Spectrum Analyzer Discriminator',...
     'SpectrumType', 'Power density',...
     'FrequencySpan', 'Full',...
