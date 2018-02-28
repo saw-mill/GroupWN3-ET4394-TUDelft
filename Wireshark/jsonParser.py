@@ -7,13 +7,15 @@ import plotly.offline as offline
 with open('Lecturehalldelta_21_02_channelhop_airodump.json') as f:
     data=json.load(f)
 
+phyNumberToLetter={0:'Unknown',1:'FHSS',2:'IR',3:'DSSS',4:'B',5:'A',6:'G',7:'N',8:'AC'}
 channelDistribution={}
 phyDistribution={}
-bssidChannelUse={}
+channelBssid={}
 
 for packet in data:
     wlanInfo=packet['_source']['layers']
 
+    # Recording Channel distribuition in a dict with channel as key and its count as value
     channel =  int(str(wlanInfo['wlan_radio.channel'][0]))
     if(channel not in channelDistribution):
         channelDistribution.update({channel:1})     
@@ -22,7 +24,18 @@ for packet in data:
         channelCount+=1
         channelDistribution.update({channel:channelCount})
 
-    phy = int(str(wlanInfo["wlan_radio.phy"][0]))
+    # Recording bssid's that use a particular channel in a dict with channel as key and list of bssid's as value
+    bssid = str(wlanInfo['wlan.bssid'][0])
+    if (channel not in channelBssid):
+        channelBssid.update({channel:[bssid]})
+    else:
+        bssidList=channelBssid.get(channel)
+        bssidList.append(bssid)
+        channelBssid.update({channel:bssidList})
+    
+    # Recording phy distribuition in a dict with phy as key and its count as value
+    p = int(str(wlanInfo["wlan_radio.phy"][0]))
+    phy = phyNumberToLetter.get(p) 
     if(phy not in phyDistribution):
         phyDistribution.update({phy:1})     
     else:
@@ -30,13 +43,12 @@ for packet in data:
         phyCount+=1
         phyDistribution.update({phy:phyCount})
 
-    # bssid = int(str(wlanInfo["wlan.bssid"][0]))
-
-
+# print(channelBssid)
 
 # orderedChannelDistribution=sorted(channelDistribution.items())
 orderedChannelDistribution=collections.OrderedDict(sorted(channelDistribution.items()))
 orderedPhyDistribution=collections.OrderedDict(sorted(phyDistribution.items()))
+
 
 #Setting up Pie Chart for Channel Distribution
 labels1 = orderedChannelDistribution.keys()
@@ -51,49 +63,3 @@ trace2 = go.Pie(labels=labels2, values=values2, name='Phy Distribution')
 #Creating the Graph
 offline.plot([trace1],filename='Channel Distribution.html',image_filename='Channel Distribution', image='jpeg')
 offline.plot([trace2],filename='Phy Distribution.html',image_filename='Phy Distribution', image='jpeg')
-
-
-# fig = {
-#     'data': [
-#         {
-#             'labels': orderedChannelDistribution.keys(),
-#             'values': orderedChannelDistribution.values(),
-#             'type': 'pie',
-#             'name': 'Channel Distribution',
-#             'marker': {'colors': ['rgb(56, 75, 126)',
-#                                   'rgb(18, 36, 37)',
-#                                   'rgb(34, 53, 101)',
-#                                   'rgb(36, 55, 57)',
-#                                   'rgb(6, 4, 4)']},
-#             'domain': {'x': [0, .48],
-#                        'y': [0, .49]},
-#             'hoverinfo':'label+percent+name',
-#             'textinfo': orderedChannelDistribution.keys()
-#             'name' : orderedChannelDistribution.keys()
-#         },
-#         {
-#             'labels': orderedPhyDistribution.keys(),
-#             'values': orderedPhyDistribution.values(),
-#             'marker': {'colors': ['rgb(177, 127, 38)',
-#                                   'rgb(205, 152, 36)',
-#                                   'rgb(99, 79, 37)',
-#                                   'rgb(129, 180, 179)',
-#                                   'rgb(124, 103, 37)']},
-#             'type': 'pie',
-#             'name': 'Phy Distribution',
-#             'domain': {'x': [.52, 1],
-#                        'y': [0, .49]},
-#             'hoverinfo':'label+percent+name',
-#             'textinfo': orderedPhyDistribution.keys()
-#             'name' : orderedPhyDistribution.keys()
-
-#         }
-#     ],
-#     'layout': {'title': 'Channel Distribution and Phy Distribution',
-#                'showlegend': True}
-#        }
-
-# py.plot(fig, filename='pie_chart_subplots')
-
-    # frequency = 'Frequency : ' + wlanInfo['radiotap.channel.freq'][0] + '\n'
-    # print frequency 
