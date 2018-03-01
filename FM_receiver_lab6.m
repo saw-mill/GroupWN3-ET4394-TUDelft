@@ -3,8 +3,7 @@
 %The original code implements the multi stage process of downsampling and filtering (decimation) 
 %through a single function. We have broken down this component into two separate decimation units and
 %which individualy has the number by which the signal has to be downsampled and a low pass filter to 
-%avoid aliasing. We have used a window based FIR filter for this purpose. Cut off frequency is determined by
-%analyzing the graph of the modulated signal and the output after the discrimination stage.
+%avoid aliasing. We have used a window based FIR filter for this purpose.
 
 function FM_receiver_lab6
 
