@@ -16,10 +16,10 @@ offline          = 0;                           % 0 = use RTL-SDR, 1 = import da
 %offline_filepath = 'rec_data\wfm_mono.mat';    % path to FM signal
 rtlsdr_id        = '0';                         % stick ID
 rtlsdr_fc        = 102.7e6;                      % tuner centre frequency in Hz
-rtlsdr_gain      = 80;                          % tuner gain in dB
+rtlsdr_gain      = 10;                          % tuner gain in dB
 rtlsdr_fs        = 2.4e6;                       % tuner sampling rate
 rtlsdr_ppm       = 0;                           % tuner parts per million correction
-rtlsdr_frmlen    = 256*25;                      % output data frame size (multiple of 5)
+rtlsdr_frmlen    = 512*25;                      % output data frame size (multiple of 5)
 rtlsdr_datatype  = 'single';                    % output data type
 deemph_region 	 = 'eu';                        % set to either eu or us
 audio_fs         = 48e3;                        % audio output sampling rate
@@ -59,7 +59,7 @@ else
     obj_rtlsdr = comm.SDRRTLReceiver(...
         rtlsdr_id,...
         'CenterFrequency', rtlsdr_fc,...
-        'EnableTunerAGC', false,...
+        'EnableTunerAGC', true,...
         'TunerGain', rtlsdr_gain,...
         'SampleRate', rtlsdr_fs, ...
         'SamplesPerFrame', rtlsdr_frmlen,...
@@ -67,21 +67,20 @@ else
         'FrequencyCorrection', rtlsdr_ppm);
     
 
-    % No. of taps is 63 and the cut off frequency is 40 Khz, converted to radians/samples/sec is 0.13
-    % Cut off frequency is determined by the point on x-axis where the gain falls by 3db on y-axis
-    % ((40KHz/2.4M)*pi) = 0.05
+    % No. of taps is 63 and the cut off frequency is 120 Khz, converted to radians/samples/sec is (fc/(fs/2))
+    
    
     % fir decimator - fs = 2.4MHz downto 240kHz
     obj_decmtr_1 = dsp.FIRDecimator(...
         'DecimationFactor', 10,...
-        'Numerator', fir1(63, 0.05));       
+        'Numerator', fir1(63, 0.1));       
 
-    % Cut off frequency is 15Khz as per mono FM broadcast receiver spectrum, ((15/240)*pi) = 0.0013  
+    % Cut off frequency is 15Khz as per mono FM broadcast receiver spectrum, (fc/(fs/2)) = 0.125 
     % fir decimator - fs = 240KHz downto 48kHz
-    obj_decmtr_1 = dsp.FIRDecimator(...
+
     obj_decmtr_2 = dsp.FIRDecimator(...
         'DecimationFactor', 5,...
-        'Numerator', fir1(63, 0.0013));         
+        'Numerator', fir1(63, 0.125));         
 
 end;
 
