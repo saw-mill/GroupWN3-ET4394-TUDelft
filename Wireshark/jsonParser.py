@@ -7,6 +7,7 @@ import plotly.offline as offline
 from operator import itemgetter
 from plotly import tools
 
+#Set the path of the Dataset folder containing JSON files captured using TShark
 path='/home/sawmill/Documents/GroupWN3-ET4394-TUDelft/Wireshark/Dataset/JSON'
 os.chdir(path)
 for file in os.listdir(path):
@@ -14,6 +15,7 @@ for file in os.listdir(path):
     f=open(file)
     data=json.load(f)
 
+    #Initializing
     phyNumberToLetter={0:'Unknown',1:'FHSS',2:'IR',3:'DSSS',4:'B',5:'A',6:'G',7:'N',8:'AC'}
     channelDistribution={}
     phyDistribution={}
@@ -21,9 +23,10 @@ for file in os.listdir(path):
     widthBssid={}
     apDistribution={}
     channelWidthDistribution={}
+
+    #Parse Logic
     for packet in data:
         wlanInfo=packet['_source']['layers']
-        # Recording Channel distribuition in a dict with channel as key and its count as value
         try:
             channel =  int(str(wlanInfo['wlan_radio.channel'][0]))
             p = int(str(wlanInfo["wlan_radio.phy"][0]))
@@ -42,8 +45,8 @@ for file in os.listdir(path):
                 apType=phy
                 channelWidth='20'
         except:
-            pass
-
+            pass 
+        # Recording Channel distribuition in a dict with channel as key and its count as value
         if(channel not in channelDistribution):
             channelDistribution.update({channel:1})     
         else:
@@ -51,18 +54,17 @@ for file in os.listdir(path):
             channelCount+=1
             channelDistribution.update({channel:channelCount})
     
-        # Recording bssid's that use a particular channel in a dict with channel as key and list of bssid's as value
-        
+        # Recording bssid's according to their PHY type in a dict with PHY type as key and list of bssid as value        
         if (apType not in apBssid):
             apBssid.update({apType:[bssid]})
         else:
             bssidList=apBssid.get(apType)
-            if(bssid not in bssidList): #Storing only unique bssids per Access Point
+            if(bssid not in bssidList):  #Storing only unique bssids per Access Point
                 bssidList.append(bssid)
                 apBssid.update({apType:bssidList})
         
         
-        # Recording phy distribuition in a dict with phy as key and its count as value 
+        # Recording phy distribution in a dict with phy as key and number of packets as value 
         if(phy not in phyDistribution):
             phyDistribution.update({phy:1})     
         else:
@@ -70,7 +72,7 @@ for file in os.listdir(path):
             phyCount+=1
             phyDistribution.update({phy:phyCount})
 
-
+        #Recording Channel Width distribution
         if (channelWidth not in widthBssid):
             widthBssid.update({channelWidth:[bssid]})
         else:
@@ -79,14 +81,13 @@ for file in os.listdir(path):
                bssidList.append(bssid)
                widthBssid.update({channelWidth:bssidList}) 
 
-    # print(channelBssid)
     for key,value in apBssid.iteritems():
         apDistribution.update({key:len(value)})
 
     for key,value in widthBssid.iteritems():
         channelWidthDistribution.update({key:len(value)})
 
-    # orderedChannelDistribution=sorted(channelDistribution.items())
+    # Sorting the Dicts based on Value
     orderedChannelDistribution=collections.OrderedDict(sorted(channelDistribution.items(), key=lambda t:t[1], reverse=True))
     orderedPhyDistribution=collections.OrderedDict(sorted(phyDistribution.items(), key=lambda t:t[1], reverse=True))
     orderedAPDistribution=collections.OrderedDict(sorted(apDistribution.items(), key=lambda t:t[1], reverse=True))
@@ -102,7 +103,7 @@ for file in os.listdir(path):
     values2 = orderedPhyDistribution.values()
     trace2 = go.Bar(x=labels2, y=values2, name='Message Phy Distribution')
 
-    #Setting the Bar Graph for Types of Access points
+    #Setting the Bar Graph for PHY Types of Access points
     labels3 = orderedAPDistribution.keys()
     values3 = orderedAPDistribution.values()
     trace3 = go.Bar(x=labels3, y=values3, name='Router Phy Distribution')
@@ -132,5 +133,6 @@ for file in os.listdir(path):
 
     fig5['layout'].update(title=os.path.splitext(file)[0])
 
+    #Plotting the graph
     offline.plot(fig5, filename=os.path.splitext(file)[0],image_filename=os.path.splitext(file)[0],image='jpeg')
     
