@@ -2,7 +2,8 @@
 
 ## Wireshark Project
 A mini project for the course ET4394 Wireless Networking offered at TU Delft. The goal of the project is to provide data on the wireless channel distribution, channel sizes and Phy types i.e. to observe and record which channels are being used mostly and by whom at different locations such as @Campus, @Dorm or @Street etc.
-
+Directory: 
+> [GroupWN3-ET4394-TUDelft/Wireshark](https://github.com/saw-mill/GroupWN3-ET4394-TUDelft/tree/master/Wireshark)
 ### Setup and Run
 #### To capture packets:
 Put the network adapter on your PC in adapter mode: 
@@ -24,3 +25,5 @@ Replace the path in the 11th line in the python script to the path of the *Datas
 
 Run the script
 `python jsonParser.py`
+### Report and Documentation
+The report and documentation for the project can be found [here](https://github.com/saw-mill/GroupWN3-ET4394-TUDelft/tree/master/Wireshark/Report)
