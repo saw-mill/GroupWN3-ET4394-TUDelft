@@ -121,7 +121,7 @@ for file in os.listdir(path):
     fig5.append_trace(trace3, 2, 1)
     fig5.append_trace(trace4, 2, 2)
 
-    fig5['layout']['xaxis1'].update(title='Channel Type',type='category')
+    fig5['layout']['xaxis1'].update(title='Channel Type',type='category',dtick=1)
     fig5['layout']['xaxis2'].update(title='PHY Type')
     fig5['layout']['xaxis3'].update(title='PHY Type')
     fig5['layout']['xaxis4'].update(title='Channel Width in MHz',type='category')
