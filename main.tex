@@ -1,0 +1,70 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{titling}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{verbatim}
+\usepackage{geometry}
+\usepackage{hyperref}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\setlength{\droptitle}{-7 em} 
+
+\begin{document}
+
+\title{ET4394: Paper Review}
+
+\author{Saumil Sachdeva (4740998) and Niket Agrawal (4719514) | Group WN3
+}
+\date{\today}
+
+\maketitle
+
+\section{Introduction}
+The paper \cite{topic} studies the behavior and usage of the wireless LANs in real world through a database of measurements recorded using a cloud based network management system named Meraki System which is an assemblage of many switches and access points that send their data to a central back-end management system. The collected data is made available through the use of web servers and applications which polls each of the above mentioned Meraki devices and fetch information about wireless channel statistics such as clients and application behaviour, traffic characteristics, link delivery characteristics, average channel utilization and other channel measurements. 
+
+
+
+\section{Critical Analysis}
+\subsection{Strong Points}
+\begin{enumerate}
+    \item The paper is well structured and provides thorough experimental data that shows some interesting experimental observations about wireless networks. One such observation was by performing a measurement of the number of interferers (nearby access points) and the band utilization, the authors were able to highlight the lack of correlation between the two data-sets which conveys the fact that direct channel utilization measurement is a better parameter to determine the channel availability in the network. 
+    \item Data presented on application usage can prove to be a good source of information for organizations from customer behavior and business perspective. For example, a 374\% increase is seen in the usage of Google Drive compared to Dropbox, which saw a -1.5\% decrease.
+    \item The decision of Meraki Systems (part of of Cisco systems) to release their data about wireless network behaviour in an anonymous form is a boon to the research community as it makes it easier to focus on the important problems and the factors that limit the performance of the networks.
+    \end{enumerate}
+
+\subsection{Weak Points}
+\begin{enumerate}
+
+    \item 
+    Authors send broadcast packets to measure the link delivery ratio. The probe packet approach may not prove efficient for large scale measurements considering the overheads caused by it. According to the method in [\ref{linkdelivery}], utilizing SNR data additionally could give better results compared to the above approach.
+    
+    \item The approach in the paper lacks data on the PHY type used for data transmission. Since 802.11ac is backward compatible, a device could be transmitting messages on PHY type a, b, etc. This statistic could provide a good insight into the WiFi infrastructure of a particular industry/site at which the data is recorded. For example, PHY type 'a' provides faster data rates and 'b' provides better range but the data rate is slow. Such information can be inferred from this data. 
+
+    \item The paper looks at only the wireless access points and their behaviour, while there are still many users and enterprises that use a wired connection in the internet backbone whose metrics are not recorded in the database mentioned in \cite{topic}.
+    
+    \item The paper lists an observation regarding the periodic reboot of the access points upon running out of memory as a large number of nearby access points were being detected and reported back. While the system does receive periodic updates about crashes and device performance, it is not clear at which stage did this bug was found. This is more likely a software bug but can't be confirmed without looking into the implementation details which the paper lacks.
+    
+    
+    \item There are number of devices who's OS the Meraki system was not able to recognize. This may include many embedded devices that are running linux or dual boot machines, which reduces the actual percentage of those OS's. A better heuristic than the current method of DHCP fingerprinting can be employed that rectifies these measurements and classifies Operating Systems in a more efficient way.
+\end{enumerate}
+
+
+
+
+\begin{thebibliography}{9}
+\bibitem{topic} \label{topic}
+  Sanjit Biswas, John Bicket, Edmund Wong, Raluca Musaloiu-E, Apurv Bhartia, Dan Aguay, Large-scale Measurements of Wireless
+Network Behavior, 2015, ACM SIGCOMM
+
+\bibitem{linkdelivery} \label{linkdelivery}
+  Yunqian Ma, "Improving wireless link delivery ratio classification with packet SNR", 2005 IEEE International Conference on Electro Information Technology
+
+\end{thebibliography}
+\end{document}
+
